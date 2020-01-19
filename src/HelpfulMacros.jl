@@ -29,4 +29,25 @@ macro isdefined(variable)
     ))
 end
 
+macro zeronan(value)
+  esc(:(
+    zero_nans = if haskey($(ENV), "ZERO_NANS")
+      $(ENV)["ZERO_NANS"] ∈ ("yes", "true", "1") ? true : false
+    else
+      false
+    end;
+    zero_nans |= @isdefined(zeronans) ? zeronans() : false;
+    replace(x::T) where {T<:Real} = isnan(x) ? zero(T) : x;
+    function replace(x::T) where {T<:Complex};
+      r, i = reim(x);
+      br, bi = isnan(r), isnan(i);
+      (!br && !bi) && return x;
+      (!br && bi) && return T(r, 0);
+      (br && !bi) && return T(0, i);
+      (br && bi) && return T(0, 0);
+    end;
+    return zero_nans ? replace.($value) : $value
+    ))
+end
+
 end
