@@ -4,12 +4,12 @@ export @isdefined, @elidableassert
 
 macro elidableassert(assertion, messages...)
   esc(:(
-    elideassert = if haskey($(ENV), "ELIDE_ASSERTS")
-      $(ENV)["ELIDE_ASSERTS"] ∈ ("yes", "true", "1") ? true : false
+    local elideassert = if haskey(ENV, "ELIDE_ASSERTS")
+      ENV["ELIDE_ASSERTS"] ∈ ("yes", "true", "1") ? true : false
     else
       false
     end;
-    elideassert |= @isdefined(elideasserts) ? elideasserts() : false;
+    local elideassert |= @isdefined(elideasserts) ? elideasserts() : false;
     if !elideassert && !isempty($messages)
       @assert $assertion $messages
     elseif !elideassert
@@ -31,12 +31,12 @@ end
 
 macro zeronan(value)
   esc(:(
-    zero_nans = if haskey($(ENV), "ZERO_NANS")
-      $(ENV)["ZERO_NANS"] ∈ ("yes", "true", "1") ? true : false
+    local zero_nans = if haskey(ENV, "ZERO_NANS")
+      ENV["ZERO_NANS"] ∈ ("yes", "true", "1") ? true : false
     else
       false
     end;
-    zero_nans |= @isdefined(zeronans) ? zeronans() : false;
+    local zero_nans |= @isdefined(zeronans) ? zeronans() : false;
     replace(x::T) where {T<:Real} = isnan(x) ? zero(T) : x;
     function replace(x::T) where {T<:Complex};
       r, i = reim(x);
