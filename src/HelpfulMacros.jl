@@ -1,6 +1,15 @@
 module Macros
 
-export @elidableassert, @elidablenanzeroer
+export @elidableassert, @elidableenv, @elidablenanzeroer, @timeandfilepath
+
+"""
+Show the environment variables
+"""
+macro elidableenv()
+  quote
+    filter(x -> occursin("ELIDE", first(x)), $ENV)
+  end
+end
 
 
 """
@@ -64,5 +73,13 @@ macro elidablenanzeroer(value)
   end
 end
 
+"""
+Display the time, and the file path
+"""
+macro timeandfilepath()
+  quote
+    using Dates; println("$(now()) $(@__FILE__)")
+  end
+end
 
 end
