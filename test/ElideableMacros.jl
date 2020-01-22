@@ -1,4 +1,4 @@
-using Test, HelpfulMacros
+using Test, ElideableMacros
 
 ENV["ELIDE_ASSERTS"] = "yes"
 ENV["ELIDE_NANZEROER"] = "1"
