@@ -1,4 +1,4 @@
-module Macros
+module ElideableMacros
 
 export @elidableassert, @elidableclamp, @elidableenv, @elidablenanzeroer
 export @elidetimeandfilepath
