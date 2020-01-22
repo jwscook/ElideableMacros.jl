@@ -1,13 +1,14 @@
 module Macros
 
-export @elidableassert, @elidableenv, @elidablenanzeroer, @timeandfilepath
+export @elidableassert, @elidableclamp, @elidableenv, @elidablenanzeroer
+export @elidetimeandfilepath
 
 """
 Show the environment variables
 """
 macro elidableenv()
   quote
-    filter(x -> occursin("ELIDE", first(x)), $ENV)
+    filter(x -> occursin("ELIDE", first(x)), $(esc(ENV)))
   end
 end
 
@@ -106,10 +107,25 @@ end
 
 """
 Display the time, and the file path
+Compile out this macro by one of two ways:
+1) Set `ENV["ELIDE_TIMEANDFILEPATH"]` to one of `"yes"`, `"true"`, `"1"`, or `"on"`
+or
+2) Put the function `elidetimeandfilepath() = false` in the module that calls @elidetimeandfilepath
+but not both
 """
 macro timeandfilepath()
-  quote
-    using Dates; println("$(now()) $(@__FILE__)")
+  local elide = haskey(ENV, "ELIDE_TIMEANDFILEPATH") &&
+    ENV["ELIDE_TIMEANDFILEPATH"] ∈ ("yes", "true", "1", "on");
+  elide |= @isdefined(elideclamp) ? elideclamp() : false;
+  if @isdefined(elidetimeandfilepath) &&
+      haskey(ENV, "ELIDE_TIMEANDFILEPATH") &&
+      ENV["ELIDE_TIMEANDFILEPATH"] ∈ ("no", "false", "0", "off");
+    error("Set only ENV[\"ELIDE_TIMEANDFILEPATH\"] or elidetimeandfilepath(), not both.");
+  end;
+  if !elide
+    quote
+      using Dates; println("$(now()) $(@__FILE__)")
+    end
   end
 end
 
