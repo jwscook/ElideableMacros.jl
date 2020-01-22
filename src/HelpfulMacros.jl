@@ -74,6 +74,37 @@ macro elidablenanzeroer(value)
 end
 
 """
+Clamp values to within ± value or between lower and upper bounds
+Compile out this macro by one of two ways:
+1) Set `ENV["ELIDE_CLAMP"]` to one of `"yes"`, `"true"`, `"1"`, or `"on"`
+or
+2) Put the function `elideclamp() = false` in the module that calls @elideclamp
+but not both
+"""
+macro elidableclamp(value, valueorlower, nothingorupper=nothing)
+  isnothing(nothingorupper) && @assert valueorlower >= 0
+  local lower = isnothing(nothingorupper) ? -valueorlower : valueorlower
+  local upper = isnothing(nothingorupper) ? valueorlower : nothingorupper
+  local elide = haskey(ENV, "ELIDE_CLAMP") &&
+    ENV["ELIDE_CLAMP"] ∈ ("yes", "true", "1", "on");
+  elide |= @isdefined(elideclamp) ? elideclamp() : false;
+  if @isdefined(elideclamp) && haskey(ENV, "ELIDE_CLAMP") &&
+    ENV["ELIDE_CLAMP"] ∈ ("no", "false", "0", "off");
+    error("Set only ENV[\"ELIDE_CLAMP\"] or elideclamp(), not both.");
+  end;
+  if !elide
+    return quote
+      _replace(x::T) where {T<:Real} = clamp(x, $(lower), $(upper));
+      _replace(x::T) where {T<:Complex} = T(_replace(real(x)),
+                                            _replace(imag(x)))
+      _replace.($(esc(value)))
+    end
+  else
+    return quote $(esc(value)) end
+  end
+end
+
+"""
 Display the time, and the file path
 """
 macro timeandfilepath()
