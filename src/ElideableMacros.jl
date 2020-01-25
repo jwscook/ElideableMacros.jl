@@ -28,13 +28,10 @@ macro elidableassert(assertion, messages...)
     ENV["ELIDE_ASSERTS"] ∈ ("yes", "true", "1", "on");
     error("Set only ENV[\"ELIDE_ASSERTS\"] or elideasserts(), not both.");
   end
+  local message = isempty(messages) ? assertion : messages[1]
   if !elide
     quote
-      if !isempty($(esc(messages)))
-        @assert $(esc(assertion)) $(esc(messages))
-      else
-        @assert $(esc(assertion))
-      end
+      @assert $(esc(assertion)) $(esc(message))
     end
   end
 end
