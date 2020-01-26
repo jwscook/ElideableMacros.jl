@@ -54,16 +54,8 @@ macro elidablenanzeroer(value)
   end;
   if !elide
     return quote
-      @inline _replace(x::T) where {T<:Real} = ifelse(isnan(x), zero(T), x);
-      @inline function _replace(x::T) where {T<:Complex};
-      r, i = reim(x);
-      br = isnan(r);
-      bi = isnan(i);
-      (!br && !bi) && return x;
-      (!br && bi) && return T(r, 0);
-      (br && !bi) && return T(0, i);
-      (br && bi) && return T(0, 0);
-      end;
+      @inline _replace(x::Real) = ifelse(isnan(x), zero(x), x);
+      @inline _replace(x::Complex) = T(_replace(real(x)), _replace(imag(x)));
       _replace.($(esc(value)))
     end
   else
