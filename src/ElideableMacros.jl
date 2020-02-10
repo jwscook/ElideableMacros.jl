@@ -55,21 +55,13 @@ macro elidablenanzeroer(value)
     error("Set only ENV[\"ELIDE_NANZEROER\"] or elidenanzeroer(), not both.");
   end;
   if !elide
-    quote
-      @inline _replace(x::Real) = ifelse(isnan(x), zero(x), x)
-      @inline function _replace(x::T) where {T<:Complex}
-        return isnan(x) ? T(_replace(real(x)), _replace(imag(x))) : x
-      end
-      if isa($(esc(value)), SArray)
-        any(isnan.($(esc(value)))) && ($(esc(value)) = _replace.($(esc(value))))
-      elseif isa($(esc(value)), AbstractArray)
-        for i ∈ findall(isnan, $(esc(value)))
-          $(esc(value))[i] = _replace($(esc(value))[i])
-        end
-      else
-        $(esc(value)) = _replace($(esc(value)));
-      end
-      nothing
+    return quote
+      @inline _replace(x::Real) = ifelse(isnan(x), zero(x), x);
+      @inline _replace(x::T) where {T<:Complex} = T(_replace(real(x)),
+                                                    _replace(imag(x)))
+      _replace.($(esc(value)))
+    else
+      return quote $(esc(value)) end
     end
   end
 end
