@@ -60,9 +60,9 @@ macro elidablenanzeroer(value)
       @inline _replace(x::T) where {T<:Complex} = T(_replace(real(x)),
                                                     _replace(imag(x)))
       _replace.($(esc(value)))
-    else
-      return quote $(esc(value)) end
     end
+  else
+    return quote $(esc(value)) end
   end
 end
 
