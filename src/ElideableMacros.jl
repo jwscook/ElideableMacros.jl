@@ -1,5 +1,7 @@
 module ElideableMacros
 
+using StaticArrays
+
 export @elidableassert, @elidableclamp, @elidableenv, @elidablenanzeroer
 export @elidetimeandfilepath
 
@@ -58,11 +60,16 @@ macro elidablenanzeroer(value)
       @inline function _replace(x::T) where {T<:Complex}
         return isnan(x) ? T(_replace(real(x)), _replace(imag(x))) : x
       end
-      if isa($(esc(value)), AbstractArray)
-        $(esc(value)) .= _replace.($(esc(value)))
+      if isa($(esc(value)), SArray)
+        any(isnan.($(esc(value)))) && ($(esc(value)) = _replace.($(esc(value))))
+      elseif isa($(esc(value)), AbstractArray)
+        for i ∈ findall(isnan, $(esc(value)))
+          $(esc(value))[i] = _replace($(esc(value))[i])
+        end
       else
-        $(esc(value)) = _replace($(esc(value)))
+        $(esc(value)) = _replace($(esc(value)));
       end
+      nothing
     end
   end
 end
